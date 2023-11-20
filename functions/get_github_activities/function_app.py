@@ -35,4 +35,3 @@ def github_request(req: func.HttpRequest) -> func.HttpResponse:
              status_code=200
         )
 
-# curl --header "PRIVATE-TOKEN:glpat-WFLYiF2WB-mexJ8nxy5W" "https://gitlab.com/api/v4/events?target_type=issue&action=created&after=2017-01-31&before=2017-03-01&scope=all"
