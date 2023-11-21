@@ -6,9 +6,7 @@ from json import loads, dumps
 
 app = func.FunctionApp(http_auth_level=func.AuthLevel.FUNCTION)
 
-@app.route(route='request/github')
-def github_request(req: func.HttpRequest) -> func.HttpResponse:
-    username = getenv('GITHUB_USERNAME')
+def get_github_activities(username: str) -> list:
     url = f'https://api.github.com/users/{username}/events/public'
     api_res = get(url)
     logging.info(f'Github public event retrieval url is {url}')
@@ -28,6 +26,24 @@ def github_request(req: func.HttpRequest) -> func.HttpResponse:
             output.append(output_dict)
         response = dumps(output)
         logging.info(f'Final output of user {username} is {response}')
+        return output
+    else:
+        logging.error(f'Got an error response from the GITHUB API where status code {api_res.status_code}.')
+        return []
+
+@app.route(route='activity/github')
+def github_activites(req: func.HttpRequest) -> func.HttpResponse:
+    username = req.params.get('username') if req.params.get('username') else getenv('GITHUB_USERNAME')
+    if not username:
+        return func.HttpResponse(
+             'Username not found',
+             status_code=404
+        )
+
+    output = get_github_activities(username)
+    if output:
+        response = dumps(output)
+        logging.info(f'Final output of user {username} is {response}')
         return func.HttpResponse(response)
     else:
         return func.HttpResponse(
@@ -35,12 +51,15 @@ def github_request(req: func.HttpRequest) -> func.HttpResponse:
              status_code=200
         )
 
+######################################################
+
+def store_github_activities_in_db() -> bool:
+    pass
 
 ######################################################
 from cassandra.cluster import Cluster
 from ssl import PROTOCOL_TLSv1_2, SSLContext, CERT_NONE
 from cassandra.auth import PlainTextAuthProvider
-
 
 @app.route(route='connect/db', auth_level=func.AuthLevel.FUNCTION)
 def connect_with_db(req: func.HttpRequest) -> func.HttpResponse:
@@ -65,4 +84,7 @@ def connect_with_db(req: func.HttpRequest) -> func.HttpResponse:
              'Cassandra session error.',
              status_code=200
         )
+
+######################################################
+
 
