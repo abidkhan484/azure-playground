@@ -31,6 +31,7 @@ def get_github_activities(username: str) -> list:
         logging.error(f'Got an error response from the GITHUB API where status code {api_res.status_code}.')
         return []
 
+@app.function_name(name='github_activites')
 @app.route(route='activity/github')
 def github_activites(req: func.HttpRequest) -> func.HttpResponse:
     username = req.params.get('username') if req.params.get('username') else getenv('GITHUB_USERNAME')
@@ -61,6 +62,7 @@ from cassandra.cluster import Cluster
 from ssl import PROTOCOL_TLSv1_2, SSLContext, CERT_NONE
 from cassandra.auth import PlainTextAuthProvider
 
+@app.function_name('connect_with_db')
 @app.route(route='connect/db', auth_level=func.AuthLevel.FUNCTION)
 def connect_with_db(req: func.HttpRequest) -> func.HttpResponse:
     username = getenv('CASSANDRA_USERNAME')
@@ -87,4 +89,6 @@ def connect_with_db(req: func.HttpRequest) -> func.HttpResponse:
 
 ######################################################
 
+# def main(req: func.HttpRequest) -> func.HttpResponse:
+#     return app.route_http_request(req)
 
